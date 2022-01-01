@@ -1,4 +1,4 @@
-*./pdf
-*./exe
-*./json
-*./docx
+*.pdf
+*.exe
+*.json
+*.docx
