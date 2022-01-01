@@ -130,6 +130,7 @@ int main(){
     }
 
     printf("\nEnd of the simulaton.");
+    system("Pause");
 }
 
 // enqueue function for adding packeds to related port equeue
