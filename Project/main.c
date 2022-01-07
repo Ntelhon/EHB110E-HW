@@ -1,9 +1,14 @@
+// Furkan Karabulut
+// EHB110E Project
+// 08/01/2021
+// https://github.com/Ntelhon
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "time.h"
 #include "conio.h"
 
-void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[]);
+void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[], int wordL, int wordHead);
 void play();
 void gameLose();
 void pause();
@@ -13,14 +18,19 @@ void saveGame(  int bombPosX,       int bombPosY,   float bombSpeed,    int corr
 void saveScore(int correctTyped, int falseTyped, int wordNum);
 void load();
 void scoreBoard();
+void settings();
 int *findWordLength(char word[]);
 
+// Variables for change the settings
 #define W 62
 #define H 17
 #define MAXWL 15
 #define PLANESPEED 0.1
 #define BOMBSPEED 0.5
+#define DIFF 0.90
+#define DEBUG 1
 
+// Struct for save the game
 struct gameS
 {
     int isBomb;
@@ -42,6 +52,7 @@ struct gameS
     int tempFalseTyped;
 } game;
 
+// Struct for save the score
 struct scoreDataS
 {
     char name[3];
@@ -51,6 +62,7 @@ struct scoreDataS
     int wordNum;
 } scoreData;
 
+// Game'S main variable, all game controlled by that variable.
 int gameMode = -1;
 // GameModes:   1 = Game Starting
 //              2 = Game Playing
@@ -62,25 +74,33 @@ int gameMode = -1;
 
 
 int score = 0;
+int h = H;
+int maxWL = MAXWL;
 float planeSpeed = PLANESPEED;
 float bombSpeed = BOMBSPEED;
-float difficulty = 0.75;
+float diff = DIFF;
+int debug = DEBUG;
 
 int isDrop = 0;
 int bombPlace = -1;
 
 int main(){
+    // randomaze seed
     srand(time(NULL));
 
     while(1){
         int input = -1;
 
-        printf("Welcome to the \"Amazing Plane Dropping Bombs Over to the Lego City\" game!\t by Furkan KARABULUT\n");
+        // Take user input, and go corresponding function
+        printf("Welcome to the \"Amazing Plane Dropping Bombs Over to the Lego City\" game! by Furkan KARABULUT\n");
         printf("Please select what you want:\n");
         printf("1. New Game\n");
         printf("2. Load a Saved Game\n");
         printf("3. ScoreBoard\n");
-        printf("4. Exit\n");
+        printf("4. How to Play\n");
+        printf("5. Settings (COMING SOON)\n");
+        printf("6. Credits\n");
+        printf("7. Exit\n");
 
         scanf("%d", &input);
 
@@ -94,21 +114,38 @@ int main(){
         {
             gameMode = 7;
             load();
-            play();
+            if(gameMode == 7)
+                play();
         }
 
-        if(input == 3){
+        // Will print last 10 saved score
+        if(input == 3)
             scoreBoard();
-        }
 
         if(input == 4){
+            printf("\nWelcome to How to Play menu.\nGameplay is soo easy. Bombs are falling into city and you wanna deactivate the boms. Each bomb have a deactivate code near. You have to write that deactive code with pressing letters. But be carefull is you press false letter you will take minus score.\n\n\n");
+        }
+
+        if(input == 5){
+            printf("\n\tIn Progress!\n\n\n\n");
+            continue;
+        }
+
+        if(input == 6){
+            printf("\nGame by Furkan Karabulut\ngithub.com/ntelhon\ne-mail: ntelgon@gmail.com\n\nSpecial Thanks for playtests to:\n\tHatice Rabia Enginoglu\n\tKubra Nur Temur\n\tKubra Karabulut\n\n\n");
+        }
+
+        if(input == 7){
             exit(0);
         }
     }
 
 }
 
+// Main fuction of program
 void play(){
+
+    // Initilaze all variables with 0.
     time_t time;
     time_t time1;
     time_t time2;
@@ -121,7 +158,7 @@ void play(){
     int bombPosX = 0;
     int bombPosY = 0;
 
-    char word[MAXWL];
+    char word[maxWL];
     int wordL = -1;
     int wordHead = 0;
 
@@ -131,6 +168,7 @@ void play(){
     int tempFalseTyped = 0;
     int wordNum = 0;
 
+    // If you plays a loaded game set variables as saved
     if(gameMode == 7){
         timeTaken = game.timeTaken;
         planePos = game.planePos;
@@ -144,6 +182,7 @@ void play(){
         wordNum = game.wordNum;
     }
 
+    // Check the words.txt file and read first word
     FILE *fileP;
     if ((fileP = fopen("words.txt", "r")) == NULL){
         printf("Error! words.txt file CAN NOT FOUND!");
@@ -153,11 +192,13 @@ void play(){
 
     fscanf(fileP, "%s", word);
 
+    // Find lengt of first word
     int *wordData = findWordLength(word);
     wordL = wordData[0];
     wordHead = wordData[1];
     free(wordData);
 
+    // If you plays a loaded game, set word valiable as saved
     if(gameMode == 7){
         for (int i = 0; i < wordNum; i++)
         {
@@ -167,19 +208,22 @@ void play(){
         wordHead = game.wordHead;
     }
 
+    // Start clocks
     time = clock();
     time1 = clock();
     time2 = clock();
 
     while (1)
     {
+        // Set a random bomb falling place
         if(gameMode == 1){
             gameMode = 2;
             score = 0;
             bombSpeed = BOMBSPEED;
-            bombPosX = rand() % W;
+            bombPosX = rand() % (int)(W * 0.6);
         }
 
+        // If you plays a loaded game, set variables as saved
         if(gameMode == 7){
             gameMode = 2;
             score = game.score;
@@ -191,6 +235,7 @@ void play(){
         tempTimeTaken1 = (double)(clock() - time1) / CLOCKS_PER_SEC;
         tempTimeTaken2 = (double)(clock() - time2) / CLOCKS_PER_SEC;
 
+        // If required time pass, move the plane a block
         if(tempTimeTaken1 > planeSpeed){
             if(planePos == bombPosX)
                 isBomb = 1;
@@ -204,10 +249,12 @@ void play(){
             tempTimeTaken1 = 0;
         }
 
+        // If required time pass, fall bomb a block.
         if((tempTimeTaken2 > bombSpeed) && isBomb){
             bombPosY++;
 
-            if(bombPosY == H - 2){
+            // If bomb touch the city, call gameLose()
+            if(bombPosY == h - 2){
                 isBomb = 0;
                 bombPosY = 0;
                 bombPosX = rand() % W;
@@ -221,6 +268,7 @@ void play(){
                 gameMode = 3;
                 gameLose();
 
+                // If user select to saveScore, call saveScore function
                 if(gameMode == 6){
                     saveScore(correctTyped, falseTyped, wordNum);
 
@@ -234,11 +282,14 @@ void play(){
             tempTimeTaken2 = 0;
         }
 
-        printScene(planePos, isBomb, bombPosX , bombPosY, &word[wordHead]);
+        // Print the scene with corresponding variables
+        printScene(planePos, isBomb, bombPosX , bombPosY, &word[wordHead], wordL, wordHead);
 
+        // Check user inputs
         if(_kbhit()){
             char c = _getch();
 
+            // If user push correct letter, modify word: book -> ook -> ok -> k -> NewWord
             if(c == word[wordHead]){
                 tempCorrectTyped++;
                 correctTyped++;
@@ -246,9 +297,12 @@ void play(){
                 wordL--;
             }
 
+            // Check for ESC input, and call pause()
             else if(c == '\033'){
                 gameMode = 4;
                 pause();
+
+                // If user want to save game, call saveGame() func
                 if(gameMode == 6){
                     saveGame(bombPosX, bombPosY, bombSpeed, correctTyped, falseTyped, isBomb,
                             planePos, tempCorrectTyped, tempFalseTyped, wordHead, wordL, wordNum, timeTaken);
@@ -268,6 +322,7 @@ void play(){
             }
         }
 
+        // If all letters types correctly, update the word and score and difficulty
         if(wordL <= 0){
             score += tempCorrectTyped - tempFalseTyped;
             wordNum++;
@@ -278,7 +333,7 @@ void play(){
             bombPosX = planePos;
 
             if(wordNum % 5 == 4)
-                bombSpeed *= difficulty;
+                bombSpeed *= diff;
 
            fscanf(fileP, "%s", word);
            int *wordData = findWordLength(word);
@@ -292,13 +347,15 @@ void play(){
     fclose(fileP);
 }
 
+// Lose Screen
 void gameLose(){
     printf("\n\n");
     printf("Select what you want:\n");
     printf("1. Play Again\n");
     printf("2. Save Last Game Scores\n");
     printf("3. Load a Saved Game\n");
-    printf("4. Exit\n");
+    printf("4. Main Menu\n");
+    printf("5. Exit\n");
 
     int input = -1;
     scanf("%d", &input);
@@ -317,14 +374,21 @@ void gameLose(){
     if(input == 3){
         gameMode = 7;
         load();
-        play();
+        if(gameMode == 7)
+            play();
     }
 
     if(input == 4){
+        printf("\n\n\n\n\n");
+        return;
+    }
+
+    if(input == 5){
         exit(0);
     }
 }
 
+// Pause Screen
 void pause(){
     printf("\n\n");
     printf("\t\tGAME PAUSED!\n");
@@ -333,7 +397,8 @@ void pause(){
     printf("2. Save Current Game\n");
     printf("3. Start a New Game\n");
     printf("4. Close That and Load a Saved Game\n");
-    printf("5. Exit\n");
+    printf("5. Main Menu\n");
+    printf("6. Exit\n");
 
     int input = -1;
     scanf("%d", &input);
@@ -357,16 +422,25 @@ void pause(){
     if(input == 4){
         gameMode = 7;
         load();
-        play();
+        if(gameMode == 7)
+            play();
     }
 
     if(input == 5){
+        printf("\n\n\n\n\n");
+        return;
+    }
+
+    if(input == 6){
         exit(0);
     }
 }
 
+// Load function for load a saved game
 void load(){
-    printf("Please write the filename without their extention, example: \"mySave\":\n");
+
+    // Take save name from the user
+    printf("\nPlease write the filename without their extention, example: \"mySave\":\n");
     char input[9];
     scanf("%s", input);
 
@@ -376,12 +450,15 @@ void load(){
     input[8] = 't';
     input[9] = '\000';
 
+    // If file can not find print an error message
     FILE *saveFileP;
     if ((saveFileP = fopen(input, "r")) == NULL){
-        printf("Error! File can not found!");
-        system("Pause");
-        exit(1);
+        printf("Error! File can not found!\n\n\n\n");
+        gameMode = -1;
+        return;
     }
+
+    // else update game datas with saved ones
     else{
         fread(&game, sizeof(struct gameS), 1, saveFileP);
         printf("Game Succesfully Loaded!");
@@ -389,10 +466,12 @@ void load(){
     }
 }
 
+// Function for save the current game
 void saveGame(int bombPosX, int bombPosY, float bombSpeed, int correctTyped,
             int falseTyped, int isBomb, int planePos, int tempCorrectTyped,
             int tempFalseTyped, int wordHead, int wordL, int wordNum, float timeTaken){
 
+    // Save all data in a game struct
     game.bombPosX = bombPosX;
     game.bombPosY = bombPosY;
     game.bombSpeed = bombSpeed;
@@ -408,6 +487,7 @@ void saveGame(int bombPosX, int bombPosY, float bombSpeed, int correctTyped,
     game.wordNum = wordNum;
     game.timeTaken = timeTaken;
 
+    // Take a save name from the user
     char input[10] = {""};
     printf("\nPlease write save name(only 5 letters): ");
     scanf("%s", input);
@@ -417,6 +497,7 @@ void saveGame(int bombPosX, int bombPosY, float bombSpeed, int correctTyped,
     input[8] = 't';
     input[9] = '\000';
 
+    // Write all data to the save file
     FILE *saveFileP;
     saveFileP = fopen(input, "wb");
     if (saveFileP != NULL) {
@@ -427,12 +508,14 @@ void saveGame(int bombPosX, int bombPosY, float bombSpeed, int correctTyped,
     printf("Game Saved as: %s\n", input);
 }
 
+// Function for save to current score
 void saveScore(int correctTyped, int falseTyped, int wordNum){
     scoreData.score = score;
     scoreData.correctTyped = correctTyped;
     scoreData.falseTyped = falseTyped;
     scoreData.wordNum = wordNum;
 
+    // Take username for save
     char input[4] = {""};
     printf("\nPlease write save name(only 3 letters): ");
     scanf("%s", input);
@@ -441,6 +524,7 @@ void saveScore(int correctTyped, int falseTyped, int wordNum){
     scoreData.name[1] = input[1];
     scoreData.name[2] = input[2];
 
+    // Save score in scores.dat file
     FILE *scoreFileP;
     scoreFileP = fopen("scores.dat", "ab");
     if (scoreFileP != NULL) {
@@ -451,14 +535,17 @@ void saveScore(int correctTyped, int falseTyped, int wordNum){
     printf("Score Saved in: scores.dat\n");
 }
 
+// Functiion for read the saved scores
 void scoreBoard(){
     FILE *scoreFileP;
     struct scoreDataS arrScore[10];
 
+    // Check scores.dat file is exist or not
     if ((scoreFileP = fopen("scores.dat", "rb")) == NULL){
         printf("Error! opening file\n\n\n");
-    // Program exits if the file pointer returns NULL.
     }
+
+    // If exist print first 10 score from file
     else{
         fseek(scoreFileP, 0L, SEEK_END);       
         int size = (int)(ftell(scoreFileP) / sizeof(struct scoreDataS));
@@ -475,12 +562,66 @@ void scoreBoard(){
             printf("Correct Typed: %d\n", arrScore[i].correctTyped);
             printf("False Typed: %d\n\n", arrScore[i].falseTyped);
         }
-        
     }
+
+    printf("\n\n");
 }
 
-void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[]){
-    // printf("\e[1;1H\e[2J");
+// This stage is on development, it is working but not compatible with LoadGame system. So now inactive.
+void settings(){
+    while (1)
+    {
+        printf("\nCurrent settings are:");
+        printf("\n\t1. Height: %d", H);
+        printf("\n\t2. MAX word length: %d", MAXWL);
+        printf("\n\t3. Plane Speed: %f", PLANESPEED);
+        printf("\n\t4. Bombs Starting Speed: %f", BOMBSPEED);
+        printf("\n\t5. Difficulty: %f", DIFF);
+        printf("\n\t6. Debug Mode: %d", DEBUG);
+        printf("\n7. Main Menu\n");
+        printf("\nSelect one which you wanna change: ");
+
+        int input = -1;
+        scanf("%d", &input);
+
+        int intVal = 0;
+        int floatVal = 0.0;
+
+        printf("New Value: ");
+
+        if((input == 1) || (input == 2) || (input == 6)){
+            scanf("%d", &intVal);
+
+            if(input == 1)
+                h = intVal;
+            if(input == 2)
+                maxWL = intVal;
+            if(input == 6)
+                debug = intVal;
+        }
+
+        else if((input == 3) || (input == 4) || (input == 5)){
+            scanf("%f", &floatVal);
+
+            if(input == 3)
+                planeSpeed = floatVal;
+            if(input == 4)
+                bombSpeed = floatVal;
+            if(input == 5)
+                diff = floatVal;
+        }
+        else{
+            break;
+        }
+    }
+
+    printf("\n\n");
+}
+
+// Main print function
+void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[], int wordL, int wordHead){
+    
+    // Firstly clear all screen
     system("cls");
 
     // set the place of plane
@@ -530,7 +671,7 @@ void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[
 
         printf(" *\n");
 
-        for (int i = bombPosY; i < H-3; i++)
+        for (int i = bombPosY; i < h-3; i++)
         {
             printf("\n");
         }
@@ -538,7 +679,7 @@ void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[
     }
 
     else{
-        for (int i = 0; i < H; i++)
+        for (int i = 0; i < h; i++)
         {
             printf("\n");
         }
@@ -552,14 +693,16 @@ void printScene(int planePos, int isBomb, int bombPosX, int bombPosY, char word[
     printf("|o o o|* * *|::  |. . | []  []  []  []|o| # # # |. . |o o o o|\n");
     printf("|o o o|**** |:  :| . .| []  []  []    |o| # # # |. . |o o o o|\n");
     printf("|_[]__|__[]_|_||_|__< |____________;;_|_|___[]__|_.|_|__[]___|\n");
+    if(debug) printf("Word data: %d / %d / %s\n", wordL, wordHead, word);
 }
 
+// Function for determine to lengt and head of word
 int *findWordLength(char word[]){
     int length = 0;
     int head = 0;
     int wordStart = 0;
 
-    for (int i = 0; i < MAXWL; i++)
+    for (int i = 0; i < maxWL; i++)
     {
         if((word[i] == '\000') && !wordStart)
             head++;
@@ -568,9 +711,13 @@ int *findWordLength(char word[]){
             length++;
             wordStart = 1;
         }
+
+        if(wordStart && (word[i] == '\000'))
+            break;
             
     }
 
+    // There i used a malloc data soo i have to free that after.
     int* data;
     data = malloc(sizeof(int) * 2);
     data[0] = length;
