@@ -76,7 +76,6 @@ int gameMode = -1;
 
 int score = 0;
 int h = H;
-int maxWL = MAXWL;
 float planeSpeed = PLANESPEED;
 float bombSpeed = BOMBSPEED;
 float diff = DIFF;
@@ -159,7 +158,7 @@ void play(){
     int bombPosX = 0;
     int bombPosY = 0;
 
-    char word[maxWL];
+    char word[MAXWL];
     int wordL = -1;
     int wordHead = 0;
 
@@ -596,7 +595,7 @@ void settings(){
             if(input == 1)
                 h = intVal;
             if(input == 2)
-                maxWL = intVal;
+                //maxWL = intVal;
             if(input == 6)
                 debug = intVal;
         }
@@ -703,7 +702,7 @@ int *findWordLength(char word[]){
     int head = 0;
     int wordStart = 0;
 
-    for (int i = 0; i < maxWL; i++)
+    for (int i = 0; i < MAXWL; i++)
     {
         if((word[i] == '\000') && !wordStart)
             head++;
