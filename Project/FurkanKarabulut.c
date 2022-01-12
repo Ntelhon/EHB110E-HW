@@ -23,13 +23,13 @@ void settings();
 int *findWordLength(char word[]);
 
 // Variables for change the settings
-#define W 62
-#define H 17
+#define W 62 // Width of Screen
+#define H 18 // Heigth of Screen minus(-) Height of City  
 #define MAXWL 15
 #define PLANESPEED 0.1
 #define BOMBSPEED 0.5
-#define DIFF 0.90
-#define DEBUG 1
+#define DIFF 0.75 // Difficulty of Game (more less more hard)
+#define DEBUG 0  // Debug mode
 
 // Struct for save the game
 struct gameS
@@ -92,7 +92,7 @@ int main(){
         int input = -1;
 
         // Take user input, and go corresponding function
-        printf("Welcome to the \"Amazing Plane Dropping Bombs Over to the Lego City\" game! by Furkan KARABULUT\n");
+        printf("Welcome to the \"Amazing Plane Dropping Bombs Over to the Lego City\" game! or shortly \"FASTEST\" by Furkan KARABULUT\n");
         printf("Please select what you want:\n");
         printf("1. New Game\n");
         printf("2. Load a Saved Game\n");
@@ -123,7 +123,7 @@ int main(){
             scoreBoard();
 
         if(input == 4){
-            printf("\nWelcome to How to Play menu.\nGameplay is soo easy. Bombs are falling into city and you wanna deactivate the boms. Each bomb have a deactivate code near. You have to write that deactive code with pressing letters. But be carefull is you press false letter you will take minus score.\n\n\n");
+            printf("\nWelcome to How to Play menu.\nGameplay is soo easy. Bombs are falling into city and you wanna deactivate the bombs. Each bomb have a deactivate code near. You have to write that deactive code with pressing letters. But be carefull is you press false letter you will take minus score.\n\n\n");
         }
 
         if(input == 5){
@@ -132,7 +132,7 @@ int main(){
         }
 
         if(input == 6){
-            printf("\nGame by Furkan Karabulut\ngithub.com/ntelhon\ne-mail: ntelgon@gmail.com\n\nSpecial Thanks for playtests to:\n\tHatice Rabia Enginoglu\n\tKubra Nur Temur\n\tKubra Karabulut\n\n\n");
+            printf("\nGame by Furkan Karabulut\ngithub.com/ntelhon\ne-mail: ntelgon@gmail.com\n\nSpecial Thanks for playtests to:\n\tHatice Rabia Enginoglu\n\tKubra Nur Temur\n\tKubra Karabulut\n\tSamet Karabulut\n\n\n");
         }
 
         if(input == 7){
